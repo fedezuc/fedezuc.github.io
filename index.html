@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Federico Zucchi</title>
+<meta name="description" content="Federico Zucchi: researcher and engineer in AI for time series, University of Strasbourg (ICube).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: compact one-column CV. The hero is a signal decomposition: the profile drawn as the sum of five components over a shared career timeline. */
+:root{
+  --display:"Newsreader", "Iowan Old Style", Georgia, serif;
+  --body:"Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --bg:#F3F5F4; --surface:#FFFFFF; --ink:#14211D; --muted:#5A6863; --rule:#D8DFDC; --accent:#2148B0; --signal:#C2622A;
+  --c1:#2148B0; --c2:#C2622A; --c3:#1C8068; --c4:#7A4FC0; --c5:#9A6A00;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0E1513; --surface:#151E1B; --ink:#E4EBE8; --muted:#94A39E; --rule:#27332F; --accent:#86A4F2; --signal:#E79A63;
+    --c1:#86A4F2; --c2:#E79A63; --c3:#5CC9A7; --c4:#B59AF0; --c5:#E2B54F; color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --bg:#0E1513; --surface:#151E1B; --ink:#E4EBE8; --muted:#94A39E; --rule:#27332F; --accent:#86A4F2; --signal:#E79A63;
+  --c1:#86A4F2; --c2:#E79A63; --c3:#5CC9A7; --c4:#B59AF0; --c5:#E2B54F; color-scheme:dark; }
+
+*{box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font:400 .95rem/1.55 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:3px}
+a:focus-visible,button:focus-visible,canvas:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+.wrap{max-width:46rem; margin:0 auto; padding-block:2rem 3.5rem}
+p,h1,h2,h3{margin:0}
+
+.bar{display:flex; justify-content:flex-end; margin-bottom:1.2rem}
+.mode{font:500 .68rem/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; cursor:pointer; color:var(--ink);
+  background:var(--surface); border:1px solid var(--rule); border-radius:999px; padding:.4rem .7rem}
+
+.head{display:grid; grid-template-columns:120px minmax(0,1fr); gap:1.5rem; align-items:center}
+.photo{width:120px; height:120px; border-radius:50%; object-fit:cover; display:block; border:1px solid var(--rule)}
+h1{font:400 clamp(2.3rem, 7vw, 3.3rem)/1 var(--display); letter-spacing:-.02em}
+h1 em{font-style:italic; color:var(--accent)}
+.role{margin-top:.55rem; color:var(--muted); font-size:1rem}
+@media (max-width:520px){ .head{grid-template-columns:minmax(0,1fr); gap:1rem} .photo{width:96px; height:96px} }
+
+/* ---------- decomposition ---------- */
+.box{margin:1.2rem 0 0; padding:1.1rem 1.1rem .9rem; background:var(--surface); border:1px solid var(--rule); border-radius:8px}
+.about{margin-top:2rem}
+.about p{max-width:42rem}
+.about .def{margin-top:.7rem; font:500 .76rem/1.4 var(--mono); color:var(--accent); letter-spacing:.03em}
+.cap{display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; font:400 .72rem/1.4 var(--mono); color:var(--muted); letter-spacing:.03em; margin-bottom:.8rem}
+.cap b{color:var(--ink); font-weight:500}
+.plot{display:grid; grid-template-columns:8.6rem minmax(0,1fr); gap:0 .8rem}
+.labels{display:flex; flex-direction:column}
+.lab{display:flex; flex-direction:column; justify-content:center; text-align:left; border:0; background:none; padding:0 .2rem 0 .55rem;
+  font:inherit; color:var(--ink); cursor:pointer; border-left:3px solid var(--c); border-radius:0; transition:opacity .2s}
+.lab .n{font:600 .82rem/1.2 var(--body)}
+.lab .s{font-size:.7rem; line-height:1.25; color:var(--muted)}
+.lab[aria-pressed="false"]{opacity:.38}
+.lab.sum{border-left-color:var(--ink); cursor:default}
+.lab.sum .n{font:400 1.05rem/1.1 var(--display)}
+.lab.loc,.lab.axis{border-left-color:transparent; cursor:default}
+.lab.loc .n{font:500 .66rem/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+canvas#dec{display:block; width:100%; cursor:crosshair; touch-action:pan-y}
+.read{display:grid; grid-template-columns:8.6rem minmax(0,1fr); gap:.8rem; margin-top:.7rem; padding-top:.7rem; border-top:1px solid var(--rule); min-height:3.6em; font-size:.86rem}
+.read .d{font:500 .78rem/1.5 var(--mono); color:var(--accent); font-variant-numeric:tabular-nums}
+.hint{font:400 .7rem/1.4 var(--mono); color:var(--muted); margin-top:.5rem}
+@media (max-width:560px){
+  .box{padding:.9rem .75rem .8rem}
+  .plot,.read{grid-template-columns:5.4rem minmax(0,1fr); gap:0 .5rem}
+  .lab .s{display:none}
+  .lab .n{font-size:.74rem}
+}
+
+.contact{display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1.1rem; margin-top:.75rem; font-size:.9rem}
+.contact .lnk{font-weight:500}
+#addr{color:var(--ink); text-decoration:none}
+.mail{display:inline-flex; align-items:center; gap:.5rem; font:500 .85rem/1 var(--mono); user-select:all}
+.mail button{font:500 .68rem/1 var(--mono); letter-spacing:.05em; text-transform:uppercase; cursor:pointer;
+  border:1px solid var(--rule); background:var(--surface); color:var(--muted); padding:.35rem .5rem; border-radius:4px}
+
+/* ---------- CV ---------- */
+section{margin-top:2.6rem}
+h2{font:500 .74rem/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--signal);
+  padding-bottom:.6rem; border-bottom:1px solid var(--rule); margin-bottom:1rem}
+.row{display:grid; grid-template-columns:8.2rem minmax(0,1fr); gap:1rem; padding:.45rem .5rem; margin:0 -.5rem; border-radius:4px; transition:background-color .2s}
+.row.on{background:color-mix(in srgb, var(--accent) 10%, transparent)}
+.row.on .when{color:var(--accent)}
+.when{font:400 .78rem/1.6 var(--mono); color:var(--muted); font-variant-numeric:tabular-nums}
+.row h3{font:600 .95rem/1.45 var(--body)}
+.row .at{color:var(--muted); font-weight:400}
+.row p{margin-top:.15rem; color:var(--muted); font-size:.9rem}
+.pub .t{font:400 1.02rem/1.35 var(--display); color:var(--ink)}
+.pub b{color:var(--ink); font-weight:600}
+.eq{color:var(--signal); font-weight:600; cursor:help}
+sup.eq{font-size:.8em; margin-left:1px}
+.pub .note{font-size:.76rem; margin-top:.1rem}
+.chips{display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.35rem}
+.chip{font-size:.84rem; padding:.22rem .6rem; border:1px solid var(--rule); border-radius:999px; background:var(--surface); color:var(--ink)}
+@media (max-width:560px){ .row{grid-template-columns:minmax(0,1fr); gap:.1rem; padding:.6rem .5rem} }
+@media (prefers-reduced-motion: reduce){ .row,.lab{transition:none} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bar"><button type="button" class="mode" id="mode" aria-label="Switch light or dark theme">Dark</button></div>
+
+  <header>
+    <div class="head">
+      <img class="photo" alt="Portrait of Federico Zucchi" src="photo.jpg">
+      <div>
+        <h1>Federico <em>Zucchi</em></h1>
+        <p class="role">Researcher and engineer in AI for time series · ICube, University of Strasbourg</p>
+        <div class="contact">
+          <span class="mail"><a id="addr" href="mailto:fdr.zucchi@gmail.com">fdr.zucchi@gmail.com</a><button type="button" id="copy">Copy</button></span>
+          <a class="lnk" href="https://www.linkedin.com/in/federico-zucchi-68b76b119/">LinkedIn</a>
+          <a class="lnk" href="https://github.com/fedezuc">GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="box about">
+      <div class="cap"><span><b>About</b></span></div>
+      <p>I build AI that reads signals from the real world, whether they come from a patient's brain, an intensive-care monitor or Germany's rail network. My work sits between research and industry: I publish on how to design better time-series models, and I have spent years in industry working on EU-funded projects alongside hospitals and partners across Europe and beyond.</p>
+      <p class="def">Ph.D. defence · 9 December 2026</p>
+    </div>
+
+    <div class="box decomp">
+      <div class="cap"><span><b>My profile, decomposed</b> · the top line is the sum of the five below</span><span>2021 → 2026</span></div>
+      <div class="plot">
+        <div class="labels" id="labels">
+          <div class="lab sum"><span class="n">Profile</span><span class="s">sum of all</span></div>
+          <button type="button" class="lab" data-i="0" aria-pressed="true" style="--c:var(--c1)"><span class="n">Research</span><span class="s">Ph.D., papers, talks</span></button>
+          <button type="button" class="lab" data-i="1" aria-pressed="true" style="--c:var(--c2)"><span class="n">Industry</span><span class="s">R&amp;D, EU projects</span></button>
+          <button type="button" class="lab" data-i="2" aria-pressed="true" style="--c:var(--c3)"><span class="n">Healthcare</span><span class="s">ICU, EEG, hospitals</span></button>
+          <button type="button" class="lab" data-i="3" aria-pressed="true" style="--c:var(--c4)"><span class="n">Mobility</span><span class="s">train delays</span></button>
+          <button type="button" class="lab" data-i="4" aria-pressed="true" style="--c:var(--c5)"><span class="n">People</span><span class="s">teaching, hiring</span></button>
+          <div class="lab loc"><span class="n">Based in</span></div>
+          <div class="lab axis"></div>
+        </div>
+        <canvas id="dec" tabindex="0" role="img" aria-label="Career drawn as a signal decomposition from 2021 to 2026. Use the arrow keys to move through time."></canvas>
+      </div>
+      <div class="read" aria-live="polite"><span class="d" id="rDate"></span><span id="rWhat"></span></div>
+      <p class="hint">Move across the plot to travel through time. Tap a component to switch it off and see how the profile changes.</p>
+    </div>
+
+  </header>
+
+  <section>
+    <h2>Experience</h2>
+    <div class="row" id="r-icube"><div class="when">05/2026 – now</div><div><h3>Research Engineer <span class="at">· ICube, University of Strasbourg</span></h3></div></div>
+    <div class="row" id="r-tum"><div class="when">11/2025 – 02/2026</div><div><h3>Visiting Ph.D. Researcher <span class="at">· TUM Heilbronn</span></h3><p>Forecasting for transport, including Deutsche Bahn train delays.</p></div></div>
+    <div class="row" id="r-ceph"><div class="when">12/2022 – 05/2026</div><div><h3>R&amp;D Engineer in AI <span class="at">· Cephalgo, Strasbourg</span></h3><p>Industrial Ph.D. AI for EEG devices in two EU health projects (OPADE, ADAPTE).</p></div></div>
+    <div class="row" id="r-parma"><div class="when">04/2022 – 12/2022</div><div><h3>Research Fellow <span class="at">· University of Parma</span></h3></div></div>
+    <div class="row" id="r-nova"><div class="when">05/2022 – 08/2022</div><div><h3>Visiting Research Fellow <span class="at">· NOVA IMS, Lisbon</span></h3></div></div>
+  </section>
+
+  <section>
+    <h2>Education</h2>
+    <div class="row" id="r-phd"><div class="when">05/2023 – 12/2026</div><div><h3>Ph.D. in Computer Science <span class="at">· University of Strasbourg</span></h3></div></div>
+    <div class="row" id="r-msc"><div class="when">03/2022</div><div><h3>M.Sc. Computer Science Engineering <span class="at">· University of Parma, 110/110 cum laude</span></h3></div></div>
+    <div class="row" id="r-bsc"><div class="when">12/2018</div><div><h3>B.Sc. Computer Science Engineering <span class="at">· University of Parma</span></h3></div></div>
+  </section>
+
+  <section>
+    <h2>Publications</h2>
+    <div class="row pub"><div class="when">Neurocomputing 2026</div><div><p class="t">PRISM: Lightweight Multivariate Time-Series Classification through Symmetric Multi-Resolution Convolutional Layers</p><p><b>F. Zucchi</b>, T. Lampert · <a href="https://arxiv.org/abs/2508.04503">arXiv</a> · <a href="https://github.com/fedezuc/PRISM">code</a></p></div></div>
+    <div class="row pub"><div class="when">ICLR 2027 (sub.)</div><div><p class="t">Adaptive Patching Is Harder Than It Looks for Time-Series Forecasting</p><p><b>F. Zucchi</b>, Y. Xie, C. Zhang, K. Luo, T. Lampert, Z. Li · <a href="https://arxiv.org/abs/2606.04074">arXiv</a></p></div></div>
+    <div class="row pub"><div class="when">AAAI 2027 (sub.)</div><div><p class="t">TrainDiDa: A Nationwide Dataset and Benchmark for Predicting Train Delays in Germany</p><p>M. Vehns<sup class="eq" title="Equal contribution">†</sup>, <b>F. Zucchi</b><sup class="eq" title="Equal contribution">†</sup>, Y. Xie, T. Lampert, B. Zhao, Z. Li</p><p class="note"><span class="eq">†</span> equal contribution</p></div></div>
+    <div class="row pub"><div class="when">ACL ARR 2026 (sub.)</div><div><p class="t">Are Human AI Scientists Losing Their Jobs? Not Yet! Evaluation of Autonomous Research Systems Alongside Human Peers</p><p>N. Petrucelli, X. Liao, <b>F. Zucchi</b>, Y. Xie, M. Vehns, R.-Ș. Garalbatin, Z. Li</p></div></div>
+  </section>
+
+  <section>
+    <h2>Interests and skills</h2>
+    <div class="row"><div class="when">Research</div><div><div class="chips">
+      <span class="chip">Time-series forecasting</span><span class="chip">Time-series classification</span><span class="chip">Signal processing</span><span class="chip">Information theory</span>
+      <span class="chip">Brain–computer interfaces</span><span class="chip">Healthcare AI</span><span class="chip">Mobility and transport</span>
+    </div></div></div>
+    <div class="row"><div class="when">Technical</div><div><div class="chips">
+      <span class="chip">Python</span><span class="chip">PyTorch</span><span class="chip">Git</span><span class="chip">Deep learning</span>
+      <span class="chip">EEG and PPG signal analysis</span><span class="chip">Data pipelines</span><span class="chip">Benchmarks and datasets</span><span class="chip">Experimental design</span>
+    </div></div></div>
+    <div class="row"><div class="when">Professional</div><div><div class="chips">
+      <span class="chip">EU project reporting</span><span class="chip">Budget and progress reviews</span><span class="chip">Working with clinicians and partners</span>
+      <span class="chip">Supervising and mentoring</span><span class="chip">Technical hiring</span><span class="chip">Scientific writing and talks</span>
+    </div></div></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+
+  // ---------- light / dark ----------
+  var modeBtn=document.getElementById('mode'), darkMq=matchMedia('(prefers-color-scheme: dark)');
+  function isDark(){ var t=root.getAttribute('data-theme'); return t ? t==='dark' : darkMq.matches; }
+  function label(){ modeBtn.textContent = isDark() ? 'Light' : 'Dark'; }
+  try{ var st=localStorage.getItem('fz-theme'); if(st) root.setAttribute('data-theme', st); }catch(e){}
+  modeBtn.addEventListener('click', function(){ var n=isDark()?'light':'dark'; root.setAttribute('data-theme', n); try{ localStorage.setItem('fz-theme', n); }catch(e){} label(); });
+  darkMq.addEventListener('change', label); label();
+
+  // ---------- copy email ----------
+  var cb=document.getElementById('copy'), ad=document.getElementById('addr');
+  cb.addEventListener('click', function(){
+    function sel(){ var r=document.createRange(); r.selectNodeContents(ad); var s=getSelection(); s.removeAllRanges(); s.addRange(r); cb.textContent='Selected'; }
+    try{ navigator.clipboard.writeText(ad.textContent.trim()).then(function(){ cb.textContent='Copied'; setTimeout(function(){cb.textContent='Copy'},1600); }, sel); }catch(e){ sel(); }
+  });
+
+  // ---------- decomposition ----------
+  function ym(y,m){ return y+(m-1)/12; }
+  var T0=2021.0, T1=2027.05, NOW=2026+9.5/12;
+  var H={sum:66, band:36, loc:22, axis:22};
+  var heights=[H.sum,H.band,H.band,H.band,H.band,H.band,H.loc,H.axis];
+  var labEls=[].slice.call(document.querySelectorAll('#labels > .lab'));
+  labEls.forEach(function(el,i){ el.style.height=heights[i]+'px'; });
+  var totalH=heights.reduce(function(a,b){return a+b;},0);
+
+  // when each component was active (level 0..1)
+  var comps=[
+    {name:'Research', col:'c1', f:13, p:.3, sp:.9, on:true,
+     segs:[[ym(2018,12),ym(2022,3),.35],[ym(2022,4),ym(2023,5),.75],[ym(2023,5),T1,1]],
+     what:'Ph.D. on deep learning for time series · 1 journal paper and 3 under review · talk at ENBIS-26'},
+    {name:'Industry', col:'c2', f:7, p:1.2, sp:.6, on:true,
+     segs:[[ym(2022,12),ym(2026,5),1],[ym(2026,5),T1,.45]],
+     what:'3.5 years full-time R&D at Cephalgo · AI for in-house EEG devices · EU projects OPADE and ADAPTE'},
+    {name:'Healthcare', col:'c3', f:19, p:2.1, sp:1.1, on:true,
+     segs:[[ym(2021,6),ym(2022,12),.7],[ym(2022,12),ym(2026,5),1],[ym(2026,5),T1,.35]],
+     what:'Sepsis detection from ICU data · EEG to predict antidepressant response · supported clinicians at partner hospitals in Italy, Colombia, Spain and Turkey'},
+    {name:'Mobility', col:'c4', f:10, p:.7, sp:.8, on:true,
+     segs:[[ym(2025,11),T1,.9]],
+     what:'Train-delay forecasting with TUM Heilbronn · TrainDiDa, a nationwide benchmark for Germany'},
+    {name:'People', col:'c5', f:4.5, p:2.6, sp:.5, on:true,
+     segs:[[ym(2022,5),ym(2022,9),.8],[ym(2023,1),T1,.75]],
+     what:"Supervised 3 Master's students · mentored a junior engineer · 20+ interviews and 4 hires"}
+  ];
+  // [from, to, name, code, always label]
+  var places=[[T0,ym(2022,5),'Italy','IT',1],[ym(2022,5),ym(2022,9),'Portugal','PT',1],[ym(2022,9),ym(2022,12),'Italy','IT',0],
+              [ym(2022,12),ym(2025,11),'France','FR',1],[ym(2025,11),ym(2026,3),'Germany','DE',1],[ym(2026,3),T1,'France','FR',1]];
+  var roles=[
+    {a:ym(2018,12),b:ym(2022,3)+1/12,label:'M.Sc. studies, Parma',row:'r-msc'},
+    {a:ym(2022,4),b:ym(2022,12)+1/12,label:'Research Fellow, Parma',row:'r-parma'},
+    {a:ym(2022,5),b:ym(2022,8)+1/12,label:'Visiting, NOVA IMS Lisbon',row:'r-nova'},
+    {a:ym(2022,12),b:ym(2026,5),label:'R&D Engineer, Cephalgo',row:'r-ceph'},
+    {a:ym(2023,5),b:ym(2026,12)+1/12,label:'Ph.D., Strasbourg',row:'r-phd'},
+    {a:ym(2025,11),b:ym(2026,2)+1/12,label:'Visiting, TUM Heilbronn',row:'r-tum'},
+    {a:ym(2026,5),b:T1,label:'Research Engineer, ICube',row:'r-icube'}
+  ];
+  var marks=[{t:ym(2018,12)+.5/12,label:'B.Sc. completed',row:'r-bsc'},{t:ym(2022,3)+.5/12,label:'M.Sc. completed, cum laude',row:'r-msc'},{t:ym(2026,12)+.3/12,label:'Ph.D. defence, 9 December',row:'r-phd'}];
+
+  function ss(x){ x=Math.max(0,Math.min(1,x)); return x*x*(3-2*x); }
+  function env(c,t){ var v=0; c.segs.forEach(function(s){ var k=Math.min(ss((t-s[0])/.18+.5), ss((s[1]-t)/.18+.5))*s[2]; if(k>v) v=k; }); return v; }
+
+  var cv=document.getElementById('dec'), ctx=cv.getContext('2d'), col={};
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function readColors(){ var cs=getComputedStyle(root); ['ink','muted','rule','bg','surface','accent','c1','c2','c3','c4','c5'].forEach(function(k){ col[k]=cs.getPropertyValue('--'+k).trim(); }); }
+  function size(){ var d=Math.min(devicePixelRatio||1,2); cv.style.height=totalH+'px'; cv.width=cv.clientWidth*d; cv.height=totalH*d; ctx.setTransform(d,0,0,d,0,0); }
+  function X(t,w){ return (t-T0)/(T1-T0)*w; }
+  function Tx(x,w){ return T0+x/w*(T1-T0); }
+
+  var cursor=NOW, focusComp=-1;
+  function wave(c,u,t,ph){ return env(c,t)*Math.sin(u*Math.PI*2*c.f + c.p - ph*c.sp); }
+
+  function strokeSeries(fn, w, y0, scale, color, lw, alpha){
+    var steps=Math.max(220,Math.floor(w/1.4)), nowX=X(NOW,w), s, x;
+    ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.lineJoin='round'; ctx.globalAlpha=alpha;
+    ctx.beginPath(); for(s=0;s<=steps;s++){ x=s/steps*w; if(x>nowX) break; var y=y0-fn(s/steps)*scale; s?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
+    ctx.setLineDash([3,4]); ctx.globalAlpha=alpha*.5; ctx.beginPath(); var st=Math.floor(nowX/w*steps);
+    for(s=st;s<=steps;s++){ x=s/steps*w; var y2=y0-fn(s/steps)*scale; s===st?ctx.moveTo(x,y2):ctx.lineTo(x,y2); } ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+  }
+
+  function draw(ph){
+    var w=cv.clientWidth; ctx.clearRect(0,0,w,totalH);
+    var y=0;
+    // the profile: sum of the active components
+    var sumMid=y+H.sum/2;
+    strokeSeries(function(u){ var t=Tx(u*w,w), v=0; comps.forEach(function(c){ if(c.on) v+=wave(c,u,t,ph); }); return Math.tanh(v/1.9); }, w, sumMid, H.sum*.40, col.ink, 1.8, 1);
+    y+=H.sum;
+    ctx.fillStyle=col.rule; ctx.fillRect(0,y,w,1);
+    // component rows
+    comps.forEach(function(c,i){
+      var mid=y+H.band/2, a=H.band*.4, dim=(!c.on)?.25:(focusComp>=0&&focusComp!==i?.35:1), s, x, e;
+      // envelope shading shows when this part was active
+      ctx.fillStyle=col[c.col]; ctx.globalAlpha=.10*dim; ctx.beginPath();
+      for(s=0;s<=160;s++){ x=s/160*w; e=env(c,Tx(x,w)); s?ctx.lineTo(x,mid-e*a):ctx.moveTo(x,mid-e*a); }
+      for(s=160;s>=0;s--){ x=s/160*w; e=env(c,Tx(x,w)); ctx.lineTo(x,mid+e*a); }
+      ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+      strokeSeries(function(u){ return wave(c,u,Tx(u*w,w),ph); }, w, mid, a, col[c.col], 1.4, dim);
+      y+=H.band;
+    });
+    ctx.fillStyle=col.rule; ctx.fillRect(0,y,w,1);
+    // where I was based
+    ctx.font='500 10px "JetBrains Mono", ui-monospace, monospace'; ctx.textBaseline='middle'; ctx.textAlign='center';
+    places.forEach(function(p,i){ var x0=X(p[0],w)+1, x1=X(p[1],w)-1, ly=y+H.loc/2, wd=x1-x0;
+      ctx.fillStyle=col.muted; ctx.globalAlpha=i%2?.18:.09; ctx.fillRect(x0,y+4,Math.max(1,wd),H.loc-8); ctx.globalAlpha=1;
+      if(!p[4] && wd<26) return;
+      var txt=(wd>70)?p[2]:p[3], cx=(x0+x1)/2;
+      if(wd<26){ // short stay: draw a small pill so the country is still named
+        ctx.fillStyle=col.surface; ctx.strokeStyle=col.muted; ctx.lineWidth=1; ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(cx-12,y+3,24,H.loc-6,3); else ctx.rect(cx-12,y+3,24,H.loc-6);
+        ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle=col.ink; ctx.fillText(txt,cx,ly+.5); });
+    y+=H.loc;
+    // axis
+    ctx.textBaseline='top';
+    for(var yr=2019;yr<=2027;yr++){ var xx=X(yr,w); if(xx<10||xx>w-10) continue; ctx.fillStyle=col.rule; ctx.fillRect(Math.round(xx),y+1,1,5);
+      if(w>420||yr%2===1){ ctx.fillStyle=col.muted; ctx.fillText(String(yr),xx,y+8); } }
+    marks.forEach(function(m){ var mx=X(m.t,w); if(mx<0||mx>w) return; ctx.fillStyle=col.surface; ctx.strokeStyle=col.accent; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(mx,y+3,3.2,0,Math.PI*2); ctx.fill(); ctx.stroke(); });
+    // today
+    var nx=X(NOW,w); ctx.fillStyle=col.muted; ctx.globalAlpha=.5; ctx.fillRect(Math.round(nx),0,1,y); ctx.globalAlpha=1;
+    // cursor
+    var cx=X(cursor,w); ctx.fillStyle=col.accent; ctx.fillRect(Math.round(cx)-.5,0,2,y);
+  }
+
+  var rDate=document.getElementById('rDate'), rWhat=document.getElementById('rWhat');
+  var MON=['01','02','03','04','05','06','07','08','09','10','11','12'];
+  function fmt(t){ var y=Math.floor(t+1e-6), m=Math.min(11,Math.floor((t-y)*12+1e-6)); return MON[m]+'/'+y; }
+  function setRows(ids){ document.querySelectorAll('.row[id]').forEach(function(r){ r.classList.toggle('on', !!ids[r.id]); }); }
+  function readTime(){
+    var on=roles.filter(function(r){ return cursor>=r.a && cursor<r.b; });
+    var near=marks.filter(function(m){ return Math.abs(m.t-cursor)<1.6/12; });
+    var items=near.concat(on), ids={}, labels=[];
+    items.forEach(function(it){ ids[it.row]=1; if(labels.indexOf(it.label)<0) labels.push(it.label); });
+    var mix=comps.filter(function(c){ return c.on && env(c,cursor)>.2; }).map(function(c){ return c.name; });
+    rDate.textContent = Math.abs(cursor-NOW)<.5/12 ? 'Now' : fmt(cursor);
+    rWhat.textContent = (labels.length?labels.join(' · '):'Between chapters') + (mix.length?'   |   '+mix.join(' + '):'');
+    setRows(ids);
+  }
+  function readComp(i){ var c=comps[i]; rDate.textContent=c.name; rWhat.textContent=c.what; setRows({}); }
+
+  var t0=performance.now();
+  function redraw(){ draw((performance.now()-t0)/1000); }
+  function setCursor(e){ var r=cv.getBoundingClientRect(); cursor=Math.max(T0+.05,Math.min(T1-.05,Tx(Math.max(0,Math.min(r.width,e.clientX-r.left)),r.width))); focusComp=-1; readTime(); if(reduce) redraw(); }
+  cv.addEventListener('pointermove', setCursor);
+  cv.addEventListener('pointerdown', setCursor);
+  cv.addEventListener('pointerleave', function(e){ if(e.pointerType==='mouse'){ cursor=NOW; readTime(); if(reduce) redraw(); } });
+  cv.addEventListener('keydown', function(e){
+    var step={ArrowRight:1/12,ArrowLeft:-1/12,ArrowUp:1,ArrowDown:-1}[e.key];
+    if(e.key==='Home') cursor=T0+.05; else if(e.key==='End') cursor=NOW; else if(step===undefined) return; else cursor=Math.max(T0+.05,Math.min(T1-.05,cursor+step));
+    e.preventDefault(); readTime(); if(reduce) redraw(); });
+
+  [].slice.call(document.querySelectorAll('.lab[data-i]')).forEach(function(b){
+    var i=+b.dataset.i;
+    b.addEventListener('click', function(){ comps[i].on=!comps[i].on; b.setAttribute('aria-pressed', comps[i].on?'true':'false'); readComp(i); if(reduce) redraw(); });
+    b.addEventListener('pointerenter', function(){ focusComp=i; readComp(i); if(reduce) redraw(); });
+    b.addEventListener('focus', function(){ focusComp=i; readComp(i); if(reduce) redraw(); });
+    b.addEventListener('pointerleave', function(){ focusComp=-1; readTime(); if(reduce) redraw(); });
+    b.addEventListener('blur', function(){ focusComp=-1; readTime(); if(reduce) redraw(); });
+  });
+
+  function loop(n){ draw((n-t0)/1000); if(!reduce && document.visibilityState!=='hidden') requestAnimationFrame(loop); }
+  readColors(); size(); readTime(); draw(0); if(!reduce) requestAnimationFrame(loop);
+  addEventListener('resize', function(){ size(); redraw(); });
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible' && !reduce) requestAnimationFrame(loop); });
+  function recolor(){ readColors(); redraw(); }
+  darkMq.addEventListener('change', recolor);
+  new MutationObserver(recolor).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
+
+</body>
+</html>
