@@ -69,6 +69,10 @@ h1 em{font-style:italic; color:var(--accent)}
 .lab.loc,.lab.axis{border-left-color:transparent; cursor:default}
 .lab.loc .n{font:500 .66rem/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
 canvas#dec{display:block; width:100%; cursor:crosshair; touch-action:pan-y}
+.scrub{grid-column:2; position:relative; height:34px; margin-top:6px; border-radius:17px; background:var(--surface-2, rgba(127,127,127,.12)); border:1px solid var(--rule); touch-action:none; cursor:ew-resize; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent}
+.scrub .tr{position:absolute; left:16px; right:16px; top:50%; height:2px; margin-top:-1px; background:var(--rule)}
+.scrub .th{position:absolute; top:50%; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; background:var(--accent); box-shadow:0 1px 6px rgba(0,0,0,.35); display:flex; align-items:center; justify-content:center; color:var(--bg, #fff); font:700 11px/1 var(--mono); pointer-events:none}
+.scrub .lbl{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; font:400 .66rem/1 var(--mono); color:var(--muted); letter-spacing:.04em; pointer-events:none}
 .read{display:grid; grid-template-columns:8.6rem minmax(0,1fr); gap:.8rem; margin-top:.7rem; padding-top:.7rem; border-top:1px solid var(--rule); min-height:3.6em; font-size:.86rem}
 .read .d{font:500 .78rem/1.5 var(--mono); color:var(--accent); font-variant-numeric:tabular-nums}
 .hint{font:400 .7rem/1.4 var(--mono); color:var(--muted); margin-top:.5rem}
@@ -147,9 +151,10 @@ sup.eq{font-size:.8em; margin-left:1px}
           <div class="lab axis"></div>
         </div>
         <canvas id="dec" tabindex="0" role="img" aria-label="Career drawn as a signal decomposition from 2021 to 2026. Use the arrow keys to move through time."></canvas>
+        <div class="scrub" id="scrub" aria-hidden="true"><div class="tr"></div><div class="lbl" id="scrubLbl">drag to travel through time</div><div class="th" id="scrubTh">&#8596;</div></div>
       </div>
       <div class="read" aria-live="polite"><span class="d" id="rDate"></span><span id="rWhat"></span></div>
-      <p class="hint">Move across the plot to travel through time. Tap a component to switch it off and see how the profile changes.</p>
+      <p class="hint">Drag the bar (or the plot) to travel through time. Tap a component to switch it off and see how the profile changes.</p>
     </div>
 
   </header>
@@ -338,14 +343,27 @@ sup.eq{font-size:.8em; margin-left:1px}
 
   var t0=performance.now();
   function redraw(){ draw((performance.now()-t0)/1000); }
-  function setCursor(e){ var r=cv.getBoundingClientRect(); cursor=Math.max(T0+.05,Math.min(T1-.05,Tx(Math.max(0,Math.min(r.width,e.clientX-r.left)),r.width))); focusComp=-1; readTime(); if(reduce) redraw(); }
-  cv.addEventListener('pointermove', setCursor);
-  cv.addEventListener('pointerdown', setCursor);
-  cv.addEventListener('pointerleave', function(e){ if(e.pointerType==='mouse'){ cursor=NOW; readTime(); if(reduce) redraw(); } });
+  var scrub=document.getElementById('scrub'), scrubTh=document.getElementById('scrubTh'), scrubLbl=document.getElementById('scrubLbl'), touched=false;
+  function placeThumb(){ var r=cv.getBoundingClientRect(); if(!r.width) return; var pad=16, x=pad+(X(cursor,r.width))/r.width*(r.width-2*pad); scrubTh.style.left=x+'px'; }
+  function setCursor(e){ var r=cv.getBoundingClientRect(); cursor=Math.max(T0+.05,Math.min(T1-.05,Tx(Math.max(0,Math.min(r.width,e.clientX-r.left)),r.width))); focusComp=-1; readTime(); placeThumb(); if(reduce) redraw(); }
+  // plot: mouse hover, or touch/pen press and drag
+  var dragging=false;
+  cv.addEventListener('pointerdown', function(e){ dragging=true; try{ cv.setPointerCapture(e.pointerId); }catch(_){} setCursor(e); });
+  cv.addEventListener('pointermove', function(e){ if(e.pointerType==='mouse' || dragging) setCursor(e); });
+  function endDrag(){ dragging=false; }
+  cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+  cv.addEventListener('pointerleave', function(e){ if(e.pointerType==='mouse'){ cursor=NOW; readTime(); placeThumb(); if(reduce) redraw(); } });
+  // drag bar under the plot: works on touch without fighting the page scroll
+  function scrubTo(e){ var r=cv.getBoundingClientRect(), pad=16, f=Math.max(0,Math.min(1,(e.clientX-r.left-pad)/(r.width-2*pad)));
+    cursor=Math.max(T0+.05,Math.min(T1-.05,T0+f*(T1-T0))); focusComp=-1; if(!touched){ touched=true; scrubLbl.style.opacity=0; } readTime(); placeThumb(); if(reduce) redraw(); }
+  var sdrag=false;
+  scrub.addEventListener('pointerdown', function(e){ sdrag=true; try{ scrub.setPointerCapture(e.pointerId); }catch(_){} scrubTo(e); e.preventDefault(); });
+  scrub.addEventListener('pointermove', function(e){ if(sdrag) scrubTo(e); });
+  scrub.addEventListener('pointerup', function(){ sdrag=false; }); scrub.addEventListener('pointercancel', function(){ sdrag=false; });
   cv.addEventListener('keydown', function(e){
     var step={ArrowRight:1/12,ArrowLeft:-1/12,ArrowUp:1,ArrowDown:-1}[e.key];
     if(e.key==='Home') cursor=T0+.05; else if(e.key==='End') cursor=NOW; else if(step===undefined) return; else cursor=Math.max(T0+.05,Math.min(T1-.05,cursor+step));
-    e.preventDefault(); readTime(); if(reduce) redraw(); });
+    e.preventDefault(); readTime(); placeThumb(); if(reduce) redraw(); });
 
   [].slice.call(document.querySelectorAll('.lab[data-i]')).forEach(function(b){
     var i=+b.dataset.i;
@@ -357,8 +375,8 @@ sup.eq{font-size:.8em; margin-left:1px}
   });
 
   function loop(n){ draw((n-t0)/1000); if(!reduce && document.visibilityState!=='hidden') requestAnimationFrame(loop); }
-  readColors(); size(); readTime(); draw(0); if(!reduce) requestAnimationFrame(loop);
-  addEventListener('resize', function(){ size(); redraw(); });
+  readColors(); size(); readTime(); draw(0); placeThumb(); if(!reduce) requestAnimationFrame(loop);
+  addEventListener('resize', function(){ size(); redraw(); placeThumb(); });
   document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible' && !reduce) requestAnimationFrame(loop); });
   function recolor(){ readColors(); redraw(); }
   darkMq.addEventListener('change', recolor);
