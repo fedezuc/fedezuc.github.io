@@ -318,11 +318,15 @@ sup.eq{font-size:.8em; margin-left:1px}
     ctx.textBaseline='top';
     for(var yr=2019;yr<=2027;yr++){ var xx=X(yr,w); if(xx<10||xx>w-10) continue; ctx.fillStyle=col.rule; ctx.fillRect(Math.round(xx),y+1,1,5);
       if(w>420||yr%2===1){ ctx.fillStyle=col.muted; ctx.fillText(String(yr),xx,y+8); } }
-    marks.forEach(function(m){ var mx=X(m.t,w); if(mx<0||mx>w) return; ctx.fillStyle=col.surface; ctx.strokeStyle=col.accent; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(mx,y+3,3.2,0,Math.PI*2); ctx.fill(); ctx.stroke(); });
+    // milestones: small muted diamonds, clearly not the draggable marker
+    marks.forEach(function(m){ var mx=X(m.t,w); if(mx<0||mx>w) return; ctx.fillStyle=col.muted; ctx.globalAlpha=.75; ctx.beginPath(); ctx.moveTo(mx,y); ctx.lineTo(mx+3.5,y+3.5); ctx.lineTo(mx,y+7); ctx.lineTo(mx-3.5,y+3.5); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1; });
     // today
     var nx=X(NOW,w); ctx.fillStyle=col.muted; ctx.globalAlpha=.5; ctx.fillRect(Math.round(nx),0,1,y); ctx.globalAlpha=1;
     // cursor
     var cx=X(cursor,w); ctx.fillStyle=col.accent; ctx.fillRect(Math.round(cx)-.5,0,2,y);
+    // draggable handle on the axis: this is the time marker
+    ctx.fillStyle=col.accent; ctx.strokeStyle=col.surface; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(cx,y+4,7.5,0,Math.PI*2); ctx.stroke(); ctx.fill();
+    ctx.fillStyle=col.surface; ctx.beginPath(); ctx.arc(cx,y+4,2.2,0,Math.PI*2); ctx.fill();
   }
 
   var rDate=document.getElementById('rDate'), rWhat=document.getElementById('rWhat');
