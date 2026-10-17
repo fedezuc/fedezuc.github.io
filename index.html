@@ -69,12 +69,21 @@ h1 em{font-style:italic; color:var(--accent)}
 .lab.loc,.lab.axis{border-left-color:transparent; cursor:default}
 .lab.loc .n{font:500 .66rem/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
 canvas#dec{display:block; width:100%; cursor:crosshair; touch-action:pan-y}
-.read{display:grid; grid-template-columns:8.6rem minmax(0,1fr); gap:.8rem; margin-top:.7rem; padding-top:.7rem; border-top:1px solid var(--rule); min-height:3.6em; font-size:.86rem}
+.read{display:grid; grid-template-columns:8.6rem minmax(0,1fr); gap:.8rem; margin-top:.7rem; padding-top:.7rem; border-top:1px solid var(--rule); min-height:6.6rem; font-size:.86rem}
 .read .d{font:500 .78rem/1.5 var(--mono); color:var(--accent); font-variant-numeric:tabular-nums}
+#rWhat{display:flex; flex-direction:column; gap:.65rem; align-content:flex-start}
+.rls{display:flex; flex-direction:column; gap:.2rem}
+.rl{font-size:.92rem; line-height:1.35}
+.rl b{font-weight:600}
+.rl i{font-style:normal; color:var(--muted)}
+.pls{display:flex; flex-wrap:wrap; gap:.35rem}
+.pl{display:inline-flex; align-items:center; gap:.4rem; font:500 .68rem/1 var(--mono); letter-spacing:.02em; padding:.32rem .55rem; border:1px solid var(--rule); border-radius:999px; color:var(--ink)}
+.pl::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--c)}
 .hint{font:400 .7rem/1.4 var(--mono); color:var(--muted); margin-top:.5rem}
 @media (max-width:560px){
   .box{padding:.9rem .75rem .8rem}
   .plot,.read{grid-template-columns:5.4rem minmax(0,1fr); gap:0 .5rem}
+  .read{min-height:11.5rem}
   .lab .s{display:none}
   .lab .n{font-size:.74rem}
 }
@@ -118,7 +127,7 @@ sup.eq{font-size:.8em; margin-left:1px}
       <img class="photo" alt="Portrait of Federico Zucchi" src="photo.jpg">
       <div>
         <h1>Federico <em>Zucchi</em></h1>
-        <p class="role">Researcher and engineer in AI for time series · ICube, University of Strasbourg</p>
+        <p class="role">Researcher and Engineer in AI for Time Series</p>
         <div class="contact">
           <span class="mail"><a id="addr" href="mailto:fdr.zucchi@gmail.com">fdr.zucchi@gmail.com</a><button type="button" id="copy">Copy</button></span>
           <a class="lnk" href="https://www.linkedin.com/in/federico-zucchi-68b76b119/">LinkedIn</a>
@@ -149,7 +158,6 @@ sup.eq{font-size:.8em; margin-left:1px}
         <canvas id="dec" tabindex="0" role="img" aria-label="Career drawn as a signal decomposition from 2021 to 2026. Use the arrow keys to move through time."></canvas>
       </div>
       <div class="read" aria-live="polite"><span class="d" id="rDate"></span><span id="rWhat"></span></div>
-      <p class="hint">Drag across the plot to travel through time; the dots follow. Tap a component to switch it off and see how the profile changes.</p>
     </div>
 
   </header>
@@ -337,9 +345,13 @@ sup.eq{font-size:.8em; margin-left:1px}
     var near=marks.filter(function(m){ return Math.abs(m.t-cursor)<1.6/12; });
     var items=near.concat(on), ids={}, labels=[];
     items.forEach(function(it){ ids[it.row]=1; if(labels.indexOf(it.label)<0) labels.push(it.label); });
-    var mix=comps.filter(function(c){ return c.on && env(c,cursor)>.2; }).map(function(c){ return c.name; });
+    var mix=comps.filter(function(c){ return c.on && env(c,cursor)>.2; });
+    function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+    var rl=items.slice().sort(function(a,b){ return (b.a||b.t)-(a.a||a.t); }).map(function(it){ var p=it.label.split(', '); return '<span class="rl"><b>'+esc(p[0])+'</b>'+(p[1]?' <i>'+esc(p.slice(1).join(', '))+'</i>':'')+'</span>'; });
+    var seen={}; rl=rl.filter(function(h){ if(seen[h]) return false; seen[h]=1; return true; });
+    var pl=mix.map(function(c){ return '<span class="pl" style="--c:var(--'+c.col+')">'+c.name+'</span>'; });
     rDate.textContent = Math.abs(cursor-NOW)<.5/12 ? 'Now' : fmt(cursor);
-    rWhat.textContent = (labels.length?labels.join(' · '):'Between chapters') + (mix.length?'   |   '+mix.join(' + '):'');
+    rWhat.innerHTML = '<span class="rls">'+(rl.length?rl.join(''):'<span class="rl"><i>Between chapters</i></span>')+'</span>'+(pl.length?'<span class="pls">'+pl.join('')+'</span>':'');
     setRows(ids);
   }
   function readComp(i){ var c=comps[i]; rDate.textContent=c.name; rWhat.textContent=c.what; setRows({}); }
